@@ -1,0 +1,72 @@
+version: '2'
+
+services:
+
+  postgres:
+    image: postgres
+    volumes:
+      - ./docker/postgres/data:/var/lib/postgres/data
+    ports:
+      - '5433:5432'
+
+  adminer:
+    image: dehy/adminer
+    ports:
+      - '8081:80'
+    links:
+      - postgres
+
+  php:
+    build: docker/php-fpm
+    ports:
+      - '9002:9000'
+    volumes:
+      - ./:/var/www/symfony:cached
+      - ./logs/symfony:/var/www/symfony/var/logs:cached
+    links:
+      - postgres
+      - ldap
+
+  nginx:
+    build: docker/nginx
+    ports:
+      - '8080:80'
+    links:
+      - php
+    volumes_from:
+      - php
+    volumes:
+      - ./docker/nginx/logs/:/var/log/nginx:cached
+
+  ldap:
+    image: osixia/openldap
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      - "./docker/ldap/db:/var/lib/ldap"
+      - "./docker/ldap/slapd.d:/etc/ldap/slapd.d"
+    restart: always
+    environment:
+      - LDAP_ADMIN_PASSWORD=root
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "ldap"
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8082:80"
+    links:
+      - ldap
+    depends_on:
+      - ldap
+
+  watch:
+    image: node:lts
+    volumes:
+      - .:/var/www/symfony
+    user: '1000:1000'
+    command: bash -c "yarn install && yarn run encore dev --watch"
+    working_dir: /var/www/symfony

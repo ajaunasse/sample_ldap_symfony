@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-8 offset-2">
+        <div class="card">
+            <div class="card-header">
+                Mes informations
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Email</dt>
+                    <dd class="col-sm-9">{{ user.email }}</dd>
+
+                    <dt class="col-sm-3">Username</dt>
+                    <dd class="col-sm-9">{{ user.username }}</dd>
+
+                    <dt class="col-sm-3">Nom</dt>
+                    <dd class="col-sm-9">{{ user.lastname }}</dd>
+
+                    <dt class="col-sm-3">Prénom</dt>
+                    <dd class="col-sm-9">{{ user.firstname }}</dd>
+                </dl>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

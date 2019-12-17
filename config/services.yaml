@@ -1,0 +1,42 @@
+parameters:
+
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+
+    Symfony\Component\Ldap\Ldap:
+      arguments: ['@Symfony\Component\Ldap\Adapter\ExtLdap\Adapter']
+
+    Symfony\Component\Ldap\Adapter\ExtLdap\Adapter:
+      arguments:
+        -   host: ldap
+            port: 389
+            options:
+              protocol_version: 3
+              referrals: false
+
+    App\Security\Provider\LdapUserProvider:
+      arguments:
+        - '@Symfony\Component\Ldap\Ldap'
+        - '%env(BASE_DN)%'
+        - '%env(DN_ADMIN)%'
+        - '%env(DN_PASSWORD)%'
+        - ['ROLE_USER']
+        - '%env(LDAP_UID_KEY)%'
+        - null
+        - null
+        - ['userPassword', 'mail']
+
+    App\Security\LoginFormAuthenticator:
+      arguments:
+        $ldap: '@Symfony\Component\Ldap\Ldap'

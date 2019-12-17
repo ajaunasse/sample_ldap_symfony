@@ -1,0 +1,32 @@
+security:
+
+  providers:
+    ldap_users:
+      id: App\Security\Provider\LdapUserProvider
+
+  encoders:
+      App\Security\Model\User: auto
+
+  firewalls:
+      dev:
+          pattern: ^/(_(profiler|wdt)|css|images|js)/
+          security: false
+      main:
+        anonymous: true
+        provider: ldap_users
+        pattern: ^/
+        guard:
+          authenticators:
+            - App\Security\LoginFormAuthenticator
+        logout:
+          path: app_logout
+          target: app_login
+        form_login_ldap:
+          service: Symfony\Component\Ldap\Ldap
+          check_path: app_login
+          login_path: app_login
+          default_target_path: /
+
+  access_control:
+    - { path: ^/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/, roles: ROLE_USER }
