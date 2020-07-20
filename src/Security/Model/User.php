@@ -45,7 +45,6 @@ class User implements UserInterface
                 }
             }
         }
-
         $this->dn = $entry->getDn();
 
         if (!empty($lastname = $entry->getAttribute('givenName'))) {
