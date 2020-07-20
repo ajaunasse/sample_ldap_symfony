@@ -35,6 +35,7 @@ class User implements UserInterface
 
     public function __construct(Entry $entry, array $roles = ['ROLE_USER'])
     {
+
         if(strpos( $entry->getDn(), 'ou') > 0 ) {
             $dnAsarray = explode(',', $entry->getDn());
             foreach ($dnAsarray as $val ) {
@@ -44,7 +45,7 @@ class User implements UserInterface
                 }
             }
         }
-        
+
         $this->dn = $entry->getDn();
 
         if (!empty($lastname = $entry->getAttribute('givenName'))) {

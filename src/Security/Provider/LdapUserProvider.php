@@ -6,6 +6,7 @@ use App\Security\Model\User;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\LdapInterface;
+use Symfony\Component\Ldap\Security\LdapUser;
 use Symfony\Component\Ldap\Security\LdapUserProvider as BaseLdapUserProvider;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -96,4 +97,13 @@ class LdapUserProvider extends BaseLdapUserProvider
 
         return $values[0];
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function supportsClass(string $class)
+    {
+        return User::class === $class;
+    }
+
 }
