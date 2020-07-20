@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Security\Provider;
 
 use App\Security\Model\User;
@@ -21,49 +20,33 @@ class LdapUserProvider extends BaseLdapUserProvider
     /** @var string */
     protected $baseDn;
 
-    /** @var string */
+    /** @var string|null */
     protected $searchDn;
 
-    /** @var string */
+    /** @var string|null */
     protected $searchPassword;
 
     /** @var string */
     protected $uidKey;
 
-    public function __construct(LdapInterface $ldap,
-                                string $baseDn,
-                                string $searchDn = null,
-                                string $searchPassword = null,
-                                array $defaultRoles = [],
-                                string $uidKey = null,
-                                string $filter = null,
-                                string $passwordAttribute = null,
-                                array $extraFields = []
-    )
+
+    public function __construct(LdapInterface $ldap, string $baseDn, string $searchDn = null, string $searchPassword = null, array $defaultRoles = [], string $uidKey = null, string $filter = null, string $passwordAttribute = null, array $extraFields = [])
     {
-
-        if (null === $uidKey) {
-            $uidKey = 'uid';
-        }
-
-        if (null === $filter) {
-            $filter = '({uid_key}={username})';
-        }
+        parent::__construct($ldap, $baseDn, $searchDn, $searchPassword, $defaultRoles, $uidKey, $filter, $passwordAttribute, $extraFields);
 
         $this->ldap = $ldap;
         $this->baseDn = $baseDn;
         $this->searchDn = $searchDn;
         $this->searchPassword = $searchPassword;
         $this->uidKey = $uidKey;
-        parent::__construct($ldap, $baseDn, $searchDn, $searchPassword, $defaultRoles, $uidKey, $filter, $passwordAttribute, $extraFields);
     }
 
-    public function loadUserByEmail(string $email) {
+    public function loadUserByEmail(string $email): UserInterface
+    {
         try {
             $this->ldap->bind($this->searchDn, $this->searchPassword);
             $query = 'mail='.$email;
             $search = $this->ldap->query($this->baseDn, $query);
-
         } catch (ConnectionException $e) {
             throw new UsernameNotFoundException(sprintf('User "%s" not found.', $email), 0, $e);
         }
@@ -87,22 +70,25 @@ class LdapUserProvider extends BaseLdapUserProvider
         return $this->loadUser($username, $entry);
     }
 
+    /**
+     * @return User
+     */
     public function refreshUser(UserInterface $user)
     {
-        if(!$user instanceof User) {
+        if (!$user instanceof User) {
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
         }
 
         return $user;
     }
 
-    private function getAttributeValue(Entry $entry, string $attribute)
+    private function getAttributeValue(Entry $entry, string $attribute): string
     {
-        if (!$entry->hasAttribute($attribute)) {
+        $values = $entry->getAttribute($attribute);
+
+        if (!$values) {
             throw new InvalidArgumentException(sprintf('Missing attribute "%s" for user "%s".', $attribute, $entry->getDn()));
         }
-
-        $values = $entry->getAttribute($attribute);
 
         if (1 !== \count($values)) {
             throw new InvalidArgumentException(sprintf('Attribute "%s" has multiple values.', $attribute));
@@ -110,5 +96,4 @@ class LdapUserProvider extends BaseLdapUserProvider
 
         return $values[0];
     }
-
 }

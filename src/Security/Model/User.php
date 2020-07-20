@@ -7,87 +7,123 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class User implements UserInterface
 {
-    /** @var string */
+    /** @var string|null */
     protected $dn;
+
+    protected $ou;
 
     /** @var string */
     protected $username;
 
-    /** @var string */
+    /** @var string|null */
     protected $email;
 
-    /** @var string */
-    protected $roles = [];
+    /** @var string[] */
+    protected $roles = ['ROLE_USER'];
 
-    /** @var string */
+    /** @var string|null */
     protected $password;
 
-    /** @var string */
+    /** @var string|null */
     protected $lastName;
 
-    /** @var string */
+    /** @var string|null */
     protected $firstName;
 
-    /** @var string */
+    /** @var string|null */
     protected $salt;
 
-    public function createUserFromLdap(Entry $entry, array $roles = ['ROLE_USER'])
+    public function __construct(Entry $entry, array $roles = ['ROLE_USER'])
     {
+        if(strpos( $entry->getDn(), 'ou') > 0 ) {
+            $dnAsarray = explode(',', $entry->getDn());
+            foreach ($dnAsarray as $val ) {
+                $tmp = explode('=', $val);
+                if('ou' == $tmp[0]) {
+                    $this->ou = $tmp[1];
+                }
+            }
+        }
+        
         $this->dn = $entry->getDn();
-        $this->lastName = $entry->getAttribute('givenName')[0];
-        $this->firstName = $entry->getAttribute('sn')[0];
-        $this->email = $entry->getAttribute('mail')[0];
-        $this->username = $entry->getAttribute('uid')[0];
+
+        if (!empty($lastname = $entry->getAttribute('givenName'))) {
+            $this->lastName = $lastname[0];
+        }
+
+        if (!empty($firstName = $entry->getAttribute('sn'))) {
+            $this->firstName = $firstName[0];
+        }
+
+        if (!empty($mail = $entry->getAttribute('mail'))) {
+            $this->email = $mail[0];
+        }
+
+        if (!empty($username = $entry->getAttribute('uid'))) {
+            $this->username = $username[0];
+        }
+
         $this->roles = $roles;
 
         return $this;
     }
 
-    public function getRoles()
+    /**
+     * @return string[]
+     */
+    public function getRoles(): array
     {
         return $this->roles;
     }
 
-    public function getPassword()
+    public function getPassword(): ?string
     {
         return $this->password;
     }
 
-
-    public function getSalt()
+    public function getSalt(): ?string
     {
         return $this->salt;
     }
 
-    public function getUsername()
+    public function getUsername(): string
     {
         return $this->username;
     }
 
-    public function getDn()
+    public function getDn(): ?string
     {
         return $this->dn;
     }
 
-    public function getEmail()
+    /**
+     * @return string|null
+     */
+    public function getEmail(): ?string
     {
         return $this->email;
     }
 
-    public function getLastName()
+    /**
+     * @return string|null
+     */
+    public function getLastName(): ?string
     {
         return $this->lastName;
     }
 
-    public function getFirstName()
+    /**
+     * @return string|null
+     */
+    public function getFirstName(): ?string
     {
         return $this->firstName;
     }
 
-    public function getFullName() {
-        return $this->firstName.' '.$this->lastName;
-    }
 
+    /**
+     * @return void
+     */
     public function eraseCredentials()
     {
     }

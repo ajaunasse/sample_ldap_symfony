@@ -17,9 +17,9 @@
 Create a file `.env.local` and copy/paste into your file this variables:
 
 ```
-###> symfony/framework-bundle ###
+###> symfony/framework-bundle ###   
  APP_ENV=dev
- APP_SECRET=b9701aae314cf7db2f8460810f82f4b3
+ APP_SECRET=
  ###< symfony/framework-bundle ###
  
  ###> doctrine/doctrine-bundle ###
